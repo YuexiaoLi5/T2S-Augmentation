@@ -1,0 +1,76 @@
+\chapter{Related Work}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+
+\section{Automated Program Repair}
+
+Automated Program Repair (APR) aims to automatically fix bugs in source code without human intervention. Traditional repair techniques rely on pre-defined fix templates or search-based algorithms~\cite{zhang2023surveylearningbasedautomatedprogram}. With the advancement of deep learning, learning-based APR has emerged as a dominant approach, modeling bug fixing as a sequence-to-sequence translation task where buggy code is translated into fixed code~\cite{zhang2023surveylearningbasedautomatedprogram}. The typical pipeline consists of three stages: fault localization to identify buggy code locations, patch generation to produce candidate fixes, and validation to verify correctness.
+
+Recent work has incorporated syntactic constraints to ensure generated patches are syntactically valid. \textit{Recoder} proposes a syntax-guided edit decoder that generates edits rather than entire code, significantly improving efficiency and correctness~\cite{zhu2022syntaxguidededitdecoderneural}. By leveraging Abstract Syntax Trees (ASTs), this approach constrains the generation space to syntactically valid modifications. Template-based methods like GAMMA combine fix templates with masked language models, achieving strong performance by transforming templates into mask patterns for context-aware prediction~\cite{zhang2023gammarevisitingtemplatebasedautomated}. However, these approaches face a trade-off between controllability and flexibility: templates provide predictable fixes but limit the diversity of generated patches.
+
+Multi-source approaches have also been explored to improve repair performance. Prior work incorporates AST structures, code comments, and other contextual information as inputs to pre-trained code models~\cite{paul2023enhancingautomatedprogramrepair}. These methods demonstrate that structural information enhances semantic understanding and leads to more accurate repairs.
+
+While existing work primarily focuses on fixing bugs, there is limited research on generating them in a controllable manner. This thesis addresses this gap by proposing a framework that generates buggy code conditioned on error types, enabling fine-grained control over the generation process.
+
+\section{Abstract Syntax Tree Based Code Understanding}
+
+Abstract Syntax Trees (ASTs) provide a hierarchical representation of code structure that captures both syntactic and semantic information. Unlike raw token sequences, ASTs encode the grammatical relationships between code elements, making them particularly useful for tasks requiring structural understanding.
+
+In the context of program repair, AST-based methods have shown effectiveness for fine-grained bug localization. \textit{Beep} learns to predict buggy code elements by modeling AST paths, demonstrating that structural information enables more accurate identification of tokens requiring changes~\cite{wang2021beepfinegrainedfixlocalization}. This work shows that ASTs are not merely syntactic representations but capture meaningful semantic relationships that are crucial for understanding code behavior.
+
+Similarly, \textit{PyScribe} leverages AST structures to improve code description generation in Python, demonstrating the utility of structured representations for code understanding tasks~\cite{schuster2023pyscribe}. The success of these approaches motivates the integration of AST information into our buggy code generation framework, where structural context can guide the injection of realistic error patterns.
+
+\section{Pre-trained Code Models}
+
+Pre-trained language models for code have significantly advanced the state of code understanding and generation tasks. These models are typically pre-trained on large corpora of source code using self-supervised objectives, then fine-tuned for downstream tasks.
+
+CodeBERT is a bimodal pre-trained model that jointly learns representations of natural language and programming code~\cite{feng2020codebertpretrainedmodelprogramming}. Built on the Transformer architecture, CodeBERT is trained with a hybrid objective incorporating replaced token detection, enabling it to capture both semantic and syntactic properties of code. It achieves state-of-the-art performance on code search, documentation generation, and other NL-PL understanding tasks.
+
+CodeT5 proposes an identifier-aware unified encoder-decoder architecture that better leverages semantic information conveyed by developer-assigned identifiers~\cite{wang2021codet5identifierawareunifiedpretrained}. By distinguishing identifier tokens during pre-training, CodeT5 achieves superior performance on both code understanding and generation tasks, including defect detection and clone detection.
+
+More recent models such as Codex~\cite{chen2021evaluatinglargelanguagemodels}, CodeGen~\cite{nijkamp2023codegenopenlargelanguage}, and StarCoder~\cite{li2023starcodersourceyou} have been trained on larger code corpora, demonstrating improved capabilities for code generation and completion. Instruction-tuned variants like InstructCodeT5+ and WizardCoder further enhance code models' ability to follow complex instructions.
+
+These pre-trained models serve as strong foundations for code intelligence tasks. In our work, we leverage pre-trained code models as both the generator backbone and the evaluation discriminators, enabling us to harness their learned representations for controllable buggy code generation.
+
+\section{Reinforcement Learning for Code Generation}
+
+Reinforcement learning (RL) has emerged as a powerful technique for optimizing code generation models beyond standard supervised fine-tuning. By treating code generation as a sequential decision-making problem, RL enables models to learn from feedback signals that are difficult to optimize with traditional loss functions.
+
+CodeRL introduces an actor-critic framework for program synthesis, where a pretrained language model serves as the actor network and a critic network evaluates functional correctness based on unit test results~\cite{le2022coderlmasteringcodegeneration}. The critic provides dense feedback signals that guide the actor toward generating programs that pass test cases. This approach achieves state-of-the-art results on the APPS benchmark, demonstrating the effectiveness of RL for code generation tasks.
+
+More recently, RL has been applied to program repair with preference learning. \textit{Less is More} proposes a two-stage framework that combines bug localization with adaptive preference learning~\cite{dai2025moreadaptiveprogramrepair}. The approach prioritizes patches with minimal modifications while maintaining code consistency, achieving improved repair accuracy and reduced overfitting.
+
+The success of RL in code-related tasks motivates our approach of using reinforcement learning to optimize the buggy code generation process. Unlike previous work that focuses on fixing or evaluating code, we apply RL to learn how to generate bugs in a controllable manner, with discriminator models providing reward signals.
+
+\section{Code Quality and Data Augmentation}
+
+High-quality training data is essential for effective code intelligence systems. However, constructing large-scale code datasets with accurate labels remains challenging. Data augmentation techniques have been proposed to increase dataset diversity and improve model robustness.
+
+In natural language processing, augmentations such as synonym replacement, random insertion, and back-translation have been widely used~\cite{wei2019edaeasydataaugmentation}. However, these approaches often produce unrealistic or semantically inconsistent augmented data when applied to code, as code syntax and semantics are more rigid than natural language.
+
+Recent work has identified critical data quality issues in code generation datasets. Studies on stealthy data poisoning attacks demonstrate that training data collected from online sources may contain malicious samples that bias model behavior~\cite{improta2025detectingstealthydatapoisoning}. This highlights the importance of data validation and quality control in code intelligence systems.
+
+Discriminator-based approaches have proven effective for data filtering and quality assessment. By training models to distinguish between real and generated data, discriminators can evaluate code quality along multiple dimensions such as fluency, correctness, and consistency. This approach ensures that augmented data maintains desired properties and is particularly useful when the augmentation process may introduce errors or noise.
+
+In the context of patch evaluation, AST-based features have been used to classify overfitting patches, providing insights into what distinguishes correct fixes from incorrect ones~\cite{Ye_2022}. This work suggests that structural analysis can effectively assess code quality and guide the generation process.
+
+Our work draws inspiration from these approaches by using dual discriminators---a fluency discriminator and an alignment discriminator---to evaluate generated buggy code. The fluency discriminator ensures that generated code maintains syntactic plausibility, while the alignment discriminator verifies that injected errors match the intended error types. These discriminator signals are then used to optimize the generator through reinforcement learning.
+
+\section{Summary}
+
+This chapter reviewed related work in five key areas relevant to our proposed framework. Learning-based automated program repair has made significant progress in fixing bugs, with recent approaches incorporating syntactic constraints and multi-source inputs. Abstract Syntax Trees provide structured representations that capture code semantics, enabling more accurate localization and generation. Pre-trained code models have become foundational tools for code intelligence tasks, offering strong representations learned from large code corpora. Reinforcement learning has proven effective for optimizing code generation, providing a mechanism to learn from complex feedback signals. Finally, discriminator-based approaches and data quality research provide insights for evaluating and improving generated code.
+
+Despite these advances, existing work primarily focuses on repairing or evaluating code rather than generating it in a controllable manner. Moreover, there is limited research on explicit modeling of error types for fine-grained control over buggy code generation. This thesis addresses these gaps by proposing a controllable buggy code generation framework that integrates error-type conditioning, structural information, and reinforcement learning optimization.
+
+\begingroup
+\vspace{1em}
+\textbf{Key Positioning Statement.} While existing work learns how to fix bugs, our work learns how to generate them in a controllable manner.
+\endgroup
+
+\endgroup
+\endinput

@@ -1,0 +1,52 @@
+\chapter*{Appendix B: Implementation Details}
+\addcontentsline{toc}{chapter}{Appendix B: Implementation Details}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+
+\section{Environment Configuration}
+
+All experiments were conducted using the following environment configuration:
+
+\begin{verbatim}
+- Python 3.10
+- PyTorch 2.0+
+- transformers >= 4.36.0
+- trl (Transformers Reinforcement Learning)
+- accelerate
+- NVIDIA GPU (CUDA 11.8+)
+\end{verbatim}
+
+\section{Code Structure}
+
+The main components of the implementation are organized as follows:
+
+\begin{itemize}
+    \item \textbf{test\_ppo\_20.py}: Main script for evaluating the PPO fine-tuned model on the test set.
+    \item \textbf{train\_alignment\_discriminator.py}: Training script for the alignment discriminator.
+    \item \textbf{train\_fluency\_discriminator.py}: Training script for the fluency discriminator.
+    \item \textbf{ppo\_tuning\_trl.py}: PPO fine-tuning script using the TRL library.
+    \item \textbf{utils/}: Utility functions for data processing, evaluation metrics, and model loading.
+\end{itemize}
+
+\section{Dataset Format}
+
+The dataset is stored in JSON format with the following structure:
+
+\begin{verbatim}
+{
+    "prompt": "Task description...",
+    "error_code": "the erroneous code snippet",
+    "correct_code": "the corrected code",
+    "labels": ["error_type_1", "error_type_2"],
+    "language": "python"
+}
+\end{verbatim}
+
+\section{Hyperparameter Sensitivity}
+
+We conducted a sensitivity analysis on key hyperparameters, including the learning rate, batch size, and PPO clipping ratio. The results indicate that the learning rate is the most sensitive hyperparameter, with values around $1 \times 10^{-5}$ yielding the best performance. The PPO clipping ratio of $\epsilon = 0.2$ was found to provide a good balance between stability and exploration.
+
+\endgroup

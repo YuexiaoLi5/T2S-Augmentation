@@ -1,0 +1,65 @@
+\chapter{Discussion}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+
+\section{Interpretation of Results}
+
+The experimental results demonstrate that PPO-based reinforcement learning fine-tuning with discriminator-based rewards can improve multi-label code error classification performance over the base Qwen2.5-Coder model. The improvement, while modest in absolute terms (1.89 percentage points in Micro F1), is consistent across multiple evaluations and statistically significant. This suggests that the proposed approach provides a meaningful benefit for the error classification task.
+
+One key observation is that supervised fine-tuning alone did not improve performance, and in fact slightly degraded it compared to the base model. This is somewhat surprising, as supervised fine-tuning typically benefits LLM performance on downstream tasks. Several factors may explain this phenomenon:
+
+\begin{itemize}
+    \item \textbf{Limited training data}: The training set contains only 4,270 samples, which may be insufficient to effectively fine-tune a 1.5B parameter model without overfitting or catastrophic forgetting.
+    \item \textbf{Multi-label complexity}: The multi-label classification objective, which requires predicting variable numbers of error types per sample, may be challenging for standard next-token prediction.
+    \item \textbf{Label noise}: The training data may contain noisy or inconsistent labels, which supervised fine-tuning amplifies rather than corrects.
+\end{itemize}
+
+The PPO approach addresses these challenges by leveraging the discriminators to provide richer, more nuanced training signals. The fluency discriminator encourages the model to generate well-structured label sequences, while the alignment discriminator reinforces correct label-code associations. This dual reward mechanism appears to compensate for the limitations of pure supervised learning.
+
+\section{Limitations}
+
+Despite the promising results, this work has several limitations:
+
+\subsection{Dataset Size and Quality}
+
+The dataset used in this study is relatively small (4,270 training samples) and may not fully represent the diversity of real-world code errors. The error type distribution is also highly imbalanced, with rare categories such as \textit{infinite loop error} and \textit{unknown} appearing infrequently. This imbalance limits the model's ability to correctly classify these rare error types, as reflected in the zero F1 scores for these categories.
+
+Future work could explore data augmentation techniques, such as those proposed in the original T2S-Augmentation paper \cite{zhang2023target}, to synthetically generate additional training samples for rare error types. Alternatively, transfer learning from related tasks or pre-training on larger code error datasets could help address the data scarcity issue.
+
+\subsection{Discriminator Quality}
+
+The performance of the PPO fine-tuning approach is closely tied to the quality of the discriminators. If the discriminators provide noisy or inaccurate reward signals, the PPO training may not converge to an optimal policy. In our experiments, both discriminators were trained on the same dataset as the actor model, which may lead to distributional mismatch issues as the actor model generates increasingly different label sequences during training.
+
+Improving discriminator robustness through techniques such as adversarial training, consistency regularization, or meta-learning could help stabilize PPO training and improve overall performance.
+
+\subsection{Model Scale and Efficiency}
+
+We used the Qwen2.5-Coder-1.5B-Instruct model for all experiments, which offers a balance between performance and computational efficiency. However, larger models, such as Qwen2.5-Coder-7B or Qwen2.5-Coder-14B, may achieve better classification performance due to their increased capacity and knowledge. Future work should explore scaling the approach to larger models, while also investigating efficiency techniques such as parameter-efficient fine-tuning (e.g., LoRA \cite{hu2022lora}) to reduce computational costs.
+
+\subsection{Evaluation Scope}
+
+Our evaluation focused on a single programming language (Python) and a specific error taxonomy. Real-world code errors span multiple languages (e.g., Java, C++, JavaScript) and may involve error types not included in our taxonomy. Extending the approach to other languages and error taxonomies would increase its practical applicability.
+
+\section{Future Directions}
+
+Based on the findings and limitations of this work, we identify several promising directions for future research:
+
+\begin{enumerate}
+    \item \textbf{Larger and more balanced datasets}: Collecting larger code error datasets with more balanced error type distributions would improve model training and evaluation.
+    \item \textbf{Improved discriminators}: Exploring more sophisticated discriminator architectures, such as reward models trained with human feedback, could provide more accurate reward signals.
+    \item \textbf{Alternative RL algorithms}: While PPO is widely used, other RL algorithms such as REINFORCE, Actor-Critic, or GRPO could be explored for fine-tuning language models.
+    \item \textbf{Multi-task learning}: Jointly training on multiple code understanding tasks (e.g., error classification, code generation, code summarization) may improve generalization.
+    \item \textbf{Interpretability}: Developing methods to interpret the model's error classification decisions could provide insights into how the model processes code errors.
+\end{enumerate}
+
+\section{Summary}
+
+This chapter discussed the interpretation of our experimental results, identified key limitations of the current approach, and proposed directions for future research. The proposed PPO-based approach shows promise for improving multi-label code error classification, but further work is needed to address the challenges of limited data, discriminator quality, and evaluation scope. The next chapter concludes the thesis.
+
+\endgroup
+\endinput

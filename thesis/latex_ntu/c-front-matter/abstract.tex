@@ -1,0 +1,17 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+
+Automatic code error classification is a critical task in software engineering and automated debugging systems. With the rapid advancement of large language models (LLMs), particularly code-specialized models such as Qwen2.5-Coder, there is growing interest in leveraging these models for multi-label code error type prediction. However, the vanilla fine-tuning approach often fails to capture the nuanced relationships between error patterns and their corresponding labels, leading to suboptimal classification performance.
+
+In this thesis, we propose a novel approach that combines the Qwen2.5-Coder-1.5B-Instruct model with Proximal Policy Optimization (PPO), a reinforcement learning algorithm, to enhance multi-label code error classification. Specifically, we formulate the error classification task as a sequence generation problem, where the model generates error type labels given error code snippets. We employ two discriminator models---a fluency discriminator and an alignment discriminator---to provide reward signals. The fluency discriminator evaluates whether the generated label sequence is syntactically and semantically coherent, while the alignment discriminator assesses whether the predicted labels correctly match the underlying error patterns in the code.
+
+Our experimental results on a dataset of Python code errors demonstrate that the proposed PPO-based approach achieves a micro F1 score improvement from 60.6\% to 62.5\% over the base model, validating the effectiveness of reinforcement learning fine-tuning for code error classification tasks.
+
+\textbf{Keywords:} Code Error Classification, Multi-label Classification, Qwen2.5-Coder, Proximal Policy Optimization, Reinforcement Learning, Large Language Models
+
+\endgroup

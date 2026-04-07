@@ -1,0 +1,31 @@
+\chapter{Conclusion}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+
+This thesis investigated the use of Proximal Policy Optimization (PPO) for enhancing multi-label code error classification with the Qwen2.5-Coder-1.5B-Instruct model. We proposed a novel approach that combines the power of large language models with reinforcement learning fine-tuning, using a dual-discriminator reward framework consisting of a fluency discriminator and an alignment discriminator.
+
+The key contributions of this work are summarized as follows:
+
+\begin{itemize}
+    \item We developed a PPO-based fine-tuning framework for multi-label code error classification, where the Qwen2.5-Coder model generates error label sequences and receives reward signals from discriminator models.
+    \item We designed and trained a fluency discriminator based on CodeBERT to evaluate the linguistic quality of generated label sequences, ensuring that the model produces well-formed and coherent predictions.
+    \item We designed and trained an alignment discriminator to assess whether the predicted labels are semantically consistent with the error patterns in the input code snippet.
+    \item We conducted comprehensive experiments demonstrating that the proposed approach achieves a 1.89 percentage point improvement in Micro F1 score (from 60.61\% to 62.50\%) over the base model, while supervised fine-tuning alone did not yield improvements.
+    \item We performed ablation studies validating the complementary contributions of both discriminators to the overall performance.
+\end{itemize}
+
+The experimental results confirm that reinforcement learning fine-tuning with discriminator-based rewards provides a more effective training signal than standard supervised fine-tuning for this task. The fluency discriminator helps the model generate syntactically valid label sequences, while the alignment discriminator ensures that the predicted labels accurately reflect the underlying error patterns.
+
+Despite the promising results, several challenges remain. The limited size and imbalanced distribution of the training data constrain the model's ability to classify rare error types. The discriminator models may provide noisy reward signals as the actor model diverges from the training distribution. Additionally, the evaluation was limited to Python code errors and a specific error taxonomy.
+
+Future work should focus on addressing these limitations through larger and more balanced datasets, improved discriminator training, and broader evaluation across multiple programming languages and error taxonomies. Exploring alternative reinforcement learning algorithms, multi-task learning, and parameter-efficient fine-tuning techniques could further enhance the approach.
+
+In conclusion, this work demonstrates the potential of combining large language models with reinforcement learning for code error classification, opening new avenues for automated debugging and software engineering applications.
+
+\endgroup
+\endinput

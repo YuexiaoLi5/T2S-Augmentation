@@ -1,0 +1,32 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.cursor/
+.vscode/
+.idea/
+
+# Logs
+wandb/
+*.log
+
+# Models (too large)
+output/
+
+# Data (too large for some)
+ntu-dissertation-template.zip
+thesis.zip
+*.zip
+
+# Temporary
+*.tmp
+test_output.json
+
+# OS
+.DS_Store
+Thumbs.db

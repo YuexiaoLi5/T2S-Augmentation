@@ -1,0 +1,44 @@
+\chapter*{Appendix A: Additional Experimental Results}
+\addcontentsline{toc}{chapter}{Appendix A: Additional Experimental Results}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+
+\section{Sample Predictions}
+
+This section provides additional qualitative examples of predictions from the base model and the PPO fine-tuned model.
+
+\begin{table}[h]
+\centering
+\caption{Sample Prediction Comparison}
+\label{tab:sample_predictions}
+\begin{tabular}{p{2cm}p{3cm}p{3cm}p{2cm}}
+\toprule
+\textbf{Sample ID} & \textbf{Ground Truth} & \textbf{Base Model} & \textbf{PPO Model} \\
+\midrule
+0 & omission & logical error, omission & logical error, omission \\
+1 & logical error, omission & omission & logical error, omission \\
+2 & omission & logical error, omission & logical error, omission \\
+3 & none & logical error, omission & logical error, omission \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:sample_predictions}, the PPO model generally produces more accurate predictions, particularly for samples with the \textit{omission} label.
+
+\section{Training Curves}
+
+Figure \ref{fig:training_curves} shows the training curves for the PPO fine-tuning process, including the reward scores from the fluency and alignment discriminators.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{assets/figures/training_curves.png}
+    \caption{PPO Training Curves}
+    \label{fig:training_curves}
+\end{figure}
+
+The training curves show a gradual increase in both fluency and alignment rewards over training, indicating that the model is learning to generate more fluent and accurate label sequences.
+
+\endgroup

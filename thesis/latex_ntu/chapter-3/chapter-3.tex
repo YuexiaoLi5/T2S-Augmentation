@@ -1,0 +1,243 @@
+\chapter{Methodology}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{1.1}
+\setlength{\parskip}{0.5\baselineskip}
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+
+\section{Overview}
+
+This chapter describes the proposed methodology for controllable buggy code generation using reinforcement learning. Unlike traditional approaches that rely on supervised fine-tuning, our framework adopts a cold-start strategy where the generator is optimized directly through reinforcement learning without any supervised pre-training phase.
+
+The overall framework consists of three main components:
+\begin{itemize}
+    \item \textbf{Generator (Qwen-3-Coder)}: A large language model that generates buggy code conditioned on error type labels and AST representations.
+    \item \textbf{Fluency Discriminator}: A transformer-based classifier that evaluates whether the generated code is syntactically correct and fluent.
+    \item \textbf{Consistency Discriminator}: A transformer-based classifier that evaluates whether the generated buggy code matches the specified error type.
+\end{itemize}
+
+These components are integrated into a PPO-based reinforcement learning loop, where the discriminators provide reward signals to optimize the generator.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{assets/figures/framework_overview.png}
+    \caption{Overview of the proposed controllable buggy code generation framework with cold-start PPO optimization}
+    \label{fig:framework_overview}
+\end{figure}
+
+Figure~\ref{fig:framework_overview} illustrates the overall architecture. The system operates in two phases: (1) a reinforcement learning phase where the generator learns from discriminator feedback, and (2) a CodeBERT-based quality verification phase where the generated buggy codes are evaluated for their distinguishability.
+
+\section{System Architecture}
+
+Our framework consists of three core modules, each with distinct model architectures, inputs, and outputs. Table~\ref{tab:system_architecture} summarizes the system architecture.
+
+\begin{table}[h]
+\centering
+\caption{System Architecture Overview}
+\label{tab:system_architecture}
+\begin{tabular}{p{2.2cm} p{3.2cm} p{3.5cm} p{2.5cm}}
+\toprule
+\textbf{Module} & \textbf{Model} & \textbf{Input} & \textbf{Output} \\
+\midrule
+Generator & Qwen-3-Coder & Code + AST + Label & Buggy code \\
+Fluency Disc. & CodeBERT + Classifier & Code text & Fluency score \\
+Consistency Disc. & CodeBERT + Classifier & Code + Label & Consistency score \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Generator Architecture}
+
+\subsection{Base Model: Qwen-3-Coder}
+
+We adopt Qwen-3-Coder~\cite{cao2026qwen3codernexttechnicalreport} as the backbone model for the generator. Qwen-3-Coder is a state-of-the-art large language model specifically designed for code understanding and generation tasks. The model has undergone extensive pre-training on diverse programming languages including Python, Java, C/C++, JavaScript, and Go, making it capable of understanding various code patterns and structures.
+
+The key advantages of Qwen-3-Coder for our task include:
+\begin{itemize}
+    \item Strong code generation capabilities learned from large-scale code corpora.
+    \item Ability to follow complex instructions for controllable generation.
+    \item Open-source availability enabling reproducible research.
+    \item Efficient inference suitable for iterative generation during RL training.
+\end{itemize}
+
+\subsection{Cold-Start Strategy}
+
+Unlike traditional approaches that first perform supervised fine-tuning (SFT) and then apply reinforcement learning, our framework adopts a cold-start strategy. This means we directly optimize the generator using PPO reinforcement learning without any supervised pre-training phase.
+
+This approach offers several advantages:
+\begin{itemize}
+    \item \textbf{Efficiency}: Eliminates the need for costly supervised training data preparation.
+    \item \textbf{Flexibility}: Allows the model to discover optimal generation strategies directly from feedback signals.
+    \item \textbf{Diversity}: Encourages more diverse generation patterns as the model is not constrained by supervised patterns.
+\end{itemize}
+
+\subsection{Input and Output}
+
+The generator takes three inputs to produce controllable buggy code:
+\begin{itemize}
+    \item \textbf{Original buggy code ($x$)}: The source code containing errors.
+    \item \textbf{Error type label ($e$)}: The target error type to inject (e.g., logical error, omission, invalid condition).
+    \item \textbf{AST representation ($a$)}: The abstract syntax tree structure of the original code for structural guidance.
+\end{itemize}
+
+Formally, the generation process is defined as:
+
+\begin{equation}
+y = G_{\theta}(x, e, a)
+\end{equation}
+
+where $G_{\theta}$ denotes the generator with parameters $\theta$, $x$ is the original buggy code, $e$ is the error type label, $a$ is the AST representation, and $y$ is the generated buggy code.
+
+The generator learns to produce code that:
+\begin{enumerate}
+    \item Maintains structural similarity to the original code (guided by AST).
+    \item Exhibits the specified error type (guided by label).
+    \item Remains syntactically valid (preserved from pre-training).
+\end{enumerate}
+
+\subsection{Prompt Format}
+
+To effectively guide the generator, we employ a structured prompt template that incorporates the input information. The prompt format follows a role-task-description pattern commonly used in instruction-tuned models:
+
+\begin{figure}[h]
+\lstset{
+    language=Python,
+    basicstyle=\fontsize{9}{10}\ttfamily,
+    breaklines=true,
+    frame=single,
+    numbers=none,
+    backgroundcolor=\color{gray!10},
+}
+\begin{lstlisting}
+# Role
+You are a professional data augmentation expert specializing in code data augmentation.
+
+# Task
+Based on the provided original data sample (including label `{label}` and abstract syntax tree `{ast}` information), complete the following:
+**Generate code**: Write a complete erroneous code that is structurally similar to the original `{code}`.
+
+# Input Description
+- `{label}`: The label corresponding to the original data.
+  [LABEL_NAMES = ['logical_error', 'memory_error', 'omission', 'invalid_condition', 'infinite_loop_error']]
+- `{ast}`: The abstract syntax tree structure of the original code.
+
+# Output Format
+**Augmented code**: A Python function or class, including necessary imports and example usage.
+\end{lstlisting}
+\caption{Data Augmentation Prompt Template}
+\label{fig:prompt_template}
+\end{figure}
+
+Figure~\ref{fig:prompt_template} illustrates the prompt template used for generation. The template consists of four components: (1) \textbf{Role definition} establishes the model as a data augmentation expert; (2) \textbf{Task description} specifies the generation objective with label and AST conditioning; (3) \textbf{Input description} provides details of the label names and AST structure; (4) \textbf{Output format} defines the expected code structure.
+
+\section{Discriminator Architectures}
+
+We employ two discriminators to provide complementary feedback signals for the generator:
+
+\subsection{Fluency Discriminator}
+
+The fluency discriminator evaluates whether the generated code is syntactically correct and linguistically natural.
+
+\textbf{Architecture:} The fluency discriminator is based on CodeBERT~\cite{feng2020codebertpretrainedmodelprogramming}, a pre-trained model that jointly learns representations of natural language and programming code. The model consists of a 12-layer transformer encoder followed by a binary classification head.
+
+\textbf{Input:} The generated buggy code text.
+
+\textbf{Output:} A fluency score $P_f(y) \in [0, 1]$, where higher values indicate better syntactic quality.
+
+\textbf{Training:} The fluency discriminator is trained on the original labeled dataset, where correct code samples serve as positive examples and samples with injected noise serve as negative examples.
+
+\subsection{Consistency Discriminator}
+
+The consistency discriminator evaluates whether the generated buggy code matches the specified error type label.
+
+\textbf{Architecture:} The consistency discriminator also uses CodeBERT as the base encoder. Unlike the fluency discriminator, it takes both the code and the label as input, allowing it to assess semantic alignment between the generated code and the target error type.
+
+\textbf{Input:} The concatenation of the generated buggy code and the error type label.
+
+\textbf{Output:} A consistency score $P_c(y, e) \in [0, 1]$, where higher values indicate better alignment between the generated code and the specified error type.
+
+\textbf{Training:} The consistency discriminator is trained on the original labeled dataset:
+\begin{itemize}
+    \item \textbf{Positive examples}: Original buggy code paired with its correct error type label.
+    \item \textbf{Negative examples}: Buggy code paired with incorrect labels (e.g., labels from different samples).
+\end{itemize}
+
+\section{Reinforcement Learning Phase}
+
+Since we already have complete training data consisting of (original buggy code, label, AST) tuples, we do not require pseudo-labeling or supervised training. We proceed directly with reinforcement learning optimization.
+
+\subsection{Training Pipeline}
+
+The reinforcement learning training pipeline consists of the following steps:
+
+\begin{enumerate}
+    \item \textbf{Generation:} The generator takes (original buggy code + label + AST) as input and generates new buggy code.
+    \item \textbf{Evaluation:} Both discriminators evaluate the generated code:
+    \begin{itemize}
+        \item Fluency discriminator outputs fluency score.
+        \item Consistency discriminator outputs consistency score.
+    \end{itemize}
+    \item \textbf{Reward Computation:} The combined reward is calculated as:
+    \begin{equation}
+    R = \lambda_1 \cdot R_{\text{fluency}} + \lambda_2 \cdot R_{\text{consistency}} - \lambda_3 \cdot R_{\text{length}}
+    \end{equation}
+    where $R_{\text{fluency}} = \log P_f(y)$, $R_{\text{consistency}} = \log P_c(y, e)$, and $R_{\text{length}} = |y| / L_{\max}$ is a length penalty.
+    \item \textbf{Parameter Update:} The PPO algorithm updates the generator parameters based on the reward signals.
+\end{enumerate}
+
+Table~\ref{tab:rl_pipeline} summarizes the input-output relationships in the RL phase.
+
+\begin{table}[h]
+\centering
+\caption{Reinforcement Learning Pipeline}
+\label{tab:rl_pipeline}
+\begin{tabular}{p{2.2cm} p{4cm} p{3.5cm}}
+\toprule
+\textbf{Step} & \textbf{Input} & \textbf{Output} \\
+\midrule
+RL Input & Code + label + AST & Updated generator params \\
+Generator & Code + label + AST & Generated buggy code \\
+Discriminator & Generated code & Fluency, Consistency scores \\
+Reward & Discriminator scores & Reward $R$ \\
+Optimization & Generator params update & Next round buggy code \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{PPO Algorithm}
+
+We adopt Proximal Policy Optimization (PPO)~\cite{schulman2017proximalpolicyoptimizationalgorithms} for parameter updates, implemented using the TRL (Transformers Reinforcement Learning) library~\cite{vonwerra2022trl}. The PPO algorithm updates the generator by maximizing a clipped surrogate objective, which prevents overly large policy updates and maintains training stability.
+
+Key hyperparameters include the learning rate, clipping ratio $\epsilon$, number of PPO epochs, mini-batch size, and advantage estimation parameters. Detailed settings are provided in Chapter 4.
+
+\section{CodeBERT Quality Verification Phase}
+
+After the reinforcement learning phase, we use a CodeBERT classifier to verify the quality and distinguishability of the generated buggy code. This phase validates whether the generated code successfully exhibits the specified error types.
+
+\subsection{Experimental Design}
+
+We compare the generated buggy codes under two input configurations:
+
+\begin{itemize}
+    \item \textbf{Group A (Prompt-based):} The generator receives only the original buggy code and a text prompt.
+    \item \textbf{Group B (Full-input):} The generator receives the original buggy code, error type label, and AST representation.
+\end{itemize}
+
+\subsection{Evaluation Protocol}
+
+\begin{enumerate}
+    \item Use the same Qwen-3-Coder generator to generate two batches of buggy code from Group A and Group B inputs.
+    \item Use a CodeBERT classifier to predict the error types for each generated buggy code.
+    \item Compute Macro-F1 score as the quality metric to compare the distinguishability of generated codes.
+\end{enumerate}
+
+The expectation is that Group B (with label and AST conditioning) will achieve higher classification accuracy, demonstrating the effectiveness of our controllable generation framework.
+
+\section{Summary}
+
+This chapter described the methodology for controllable buggy code generation using cold-start reinforcement learning. Our framework consists of three core components: (1) a Qwen-3-Coder-based generator that produces buggy code conditioned on error types and AST structures, (2) a fluency discriminator that evaluates syntactic quality, and (3) a consistency discriminator that verifies error type alignment. Unlike traditional approaches, we directly optimize the generator through PPO without supervised pre-training. The discriminators provide complementary reward signals that guide the generator toward producing fluent and consistent buggy code. The subsequent chapter presents the experimental setup and results.
+
+\endgroup
+\endinput

@@ -1,0 +1,76 @@
+\chapter{Introduction}
+\begingroup
+\justifying
+\setlength{\parindent}{0pt}
+\setstretch{2}
+\setlength{\parskip}{0.5\baselineskip}
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+
+\section{Motivation and Background}
+
+Software debugging is one of the most time-consuming and costly activities in software development. Among the various challenges in automated debugging, accurately classifying code errors into their respective types stands as a fundamental yet critical step. Precise error classification enables developers to quickly understand the nature of bugs, prioritize fixing efforts, and even automate remediation processes. Traditional rule-based error classification systems often struggle with the diversity and complexity of real-world code errors, necessitating more sophisticated machine learning approaches.
+
+In recent years, large language models (LLMs) have demonstrated remarkable capabilities across a wide range of natural language and code understanding tasks. Models such as GPT-4 \cite{openai2023gpt4}, CodeLlama \cite{roziere2023code}, and Qwen-Coder \cite{qwen2024coder} have shown strong performance in code generation, explanation, and analysis tasks. These models, pre-trained on massive corpora of code and text, possess rich representations of programming concepts and syntactic patterns. Fine-tuning these models for specific downstream tasks has become a standard paradigm in applied machine learning.
+
+However, the naive fine-tuning approach, which typically employs supervised learning with cross-entropy loss, may not fully capture the nuanced relationships between code error patterns and their corresponding error types. In particular, for multi-label classification tasks where a code snippet may contain multiple error types simultaneously (e.g., both a logical error and an omission), the standard next-token prediction objective does not provide direct feedback on whether the generated label sequence is coherent, aligned with the input code, or consistent across different error categories.
+
+To address these limitations, we propose leveraging reinforcement learning (RL) to fine-tune a code-specialized LLM for error classification. Specifically, we employ Proximal Policy Optimization (PPO) \cite{schulman2017proximal}, an RL algorithm widely used for training language models, to refine the model's error classification capabilities. The key insight is that by introducing reward signals from discriminator models that evaluate both the fluency of generated labels and their alignment with the input error code, we can guide the model toward producing more accurate and coherent predictions.
+
+This thesis focuses on the task of multi-label code error type classification using Qwen2.5-Coder-1.5B-Instruct, a 1.5 billion parameter instruction-tuned model specialized for code tasks. We investigate how PPO-based fine-tuning, combined with fluency and alignment discriminators, can improve classification performance beyond supervised fine-tuning baselines.
+
+\section{Problem Statement}
+
+Given a code snippet containing one or more errors, the task is to predict a set of error type labels from a predefined taxonomy. The error type taxonomy in this work includes six categories:
+
+\begin{itemize}
+    \item \textbf{Logical Error}: The code executes without crashing but produces incorrect results due to flawed logic.
+    \item \textbf{Memory Error}: The code contains memory-related issues such as out-of-bounds access or memory leaks.
+    \item \textbf{Omission}: The code is missing necessary components (e.g., a return statement, a condition check).
+    \item \textbf{Invalid Condition}: The code contains conditional statements that evaluate incorrectly under certain inputs.
+    \item \textbf{Infinite Loop Error}: The code enters an infinite loop due to improper loop conditions or missing loop termination.
+    \item \textbf{Unknown}: Error types that do not fall into the above categories.
+\end{itemize}
+
+This is fundamentally a multi-label classification problem, as a single code snippet may exhibit one or more of these error types simultaneously. The evaluation metric is multi-label classification performance, with micro F1 and macro F1 as the primary metrics.
+
+Formally, let $x$ denote an input code snippet and $y \subseteq \mathcal{L}$ denote the set of true error labels, where $\mathcal{L} = \{\text{logical\_error}, \text{memory\_error}, \text{omission}, \text{invalid\_condition}, \text{infinite\_loop\_error}, \text{unknown}\}$. The goal is to learn a model $f: \mathcal{X} \rightarrow 2^{\mathcal{L}}$ that maps code snippets to sets of error labels.
+
+\section{Objectives and Scope}
+
+The primary objectives of this thesis are as follows:
+
+\begin{enumerate}
+    \item To develop a PPO-based reinforcement learning framework for fine-tuning the Qwen2.5-Coder model on the multi-label code error classification task.
+    \item To design and train discriminator models that evaluate the fluency and alignment of generated error labels, serving as reward signals in the PPO framework.
+    \item To conduct comprehensive experiments comparing the PPO fine-tuned model against supervised fine-tuning baselines, analyzing performance across different error categories.
+    \item To investigate the impact of different training configurations, including discriminator architectures, reward scaling, and PPO hyperparameters, on classification performance.
+\end{enumerate}
+
+The scope of this thesis is limited to Python code error classification, as Python is one of the most widely used programming languages and features distinct error patterns compared to compiled languages. We focus on the Qwen2.5-Coder-1.5B-Instruct model due to its balance of performance and computational efficiency.
+
+\section{Contributions}
+
+The main contributions of this thesis are summarized as follows:
+
+\begin{itemize}
+    \item We propose a novel approach that combines Qwen2.5-Coder with PPO-based reinforcement learning for multi-label code error classification. To the best of our knowledge, this is the first work to apply PPO fine-tuning to the code error classification task using a code-specialized LLM.
+    \item We introduce a dual-discriminator reward framework consisting of a fluency discriminator and an alignment discriminator. These discriminators provide complementary reward signals that guide the model toward generating fluent and accurate error label sequences.
+    \item We conduct extensive experiments on a real-world Python code error dataset, demonstrating that the proposed PPO-based approach achieves a significant improvement in micro F1 score (from 60.6\% to 62.5\%) compared to the base model.
+    \item We provide a detailed analysis of the experimental results, including per-error-type performance, the effect of discriminator training, and qualitative examples of generated labels.
+\end{itemize}
+
+\section{Thesis Organization}
+
+The remainder of this thesis is organized as follows:
+
+\begin{itemize}
+    \item Chapter 2 provides a comprehensive review of related work, covering large language models for code, multi-label text classification, and reinforcement learning for language model training.
+    \item Chapter 3 describes the proposed methodology in detail, including the base model, the PPO framework, the discriminator architectures, and the reward computation mechanism.
+    \item Chapter 4 presents the experimental setup, datasets, evaluation metrics, and results.
+    \item Chapter 5 discusses the findings, limitations, and potential directions for future work.
+    \item Chapter 6 concludes the thesis.
+\end{itemize}
+
+\endgroup
+\endinput
