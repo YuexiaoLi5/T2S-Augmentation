@@ -115,31 +115,23 @@ cd thesis && python generate_training_figures.py
 
 ## Key Results
 
+### Code Error Classification (Multi-label)
+| Metric | Base Model | Our Method | Improvement |
+|--------|------------|------------|-------------|
+| Micro F1 | 60.6% | 62.5% | +1.89 pp |
+| Macro F1 | - | 0.65 | - |
+
+### Generation Quality
 | Metric | Score |
 |--------|-------|
 | Fluency | 0.89 |
 | Consistency | 0.84 |
 | CodeBERT Accuracy | 68.7% |
-| Macro-F1 | 0.65 |
 
-## Requirements
-
-```bash
-export HF_TOKEN="your_huggingface_token"
-pip install huggingface_hub transformers torch
-```
-
-## Citation
-
-If you use this code in your research, please cite:
-
-```bibtex
-@misc{t2s-augmentation,
-  title={Controllable Buggy Code Generation via Cold-Start Reinforcement Learning},
-  author={Your Name},
-  year={2026}
-}
-```
+### Ablation Study
+- **Without AST Conditioning**: Macro-F1 drops to 0.51 (-14 pp)
+- **Without Consistency Discriminator**: Macro-F1 drops to 0.54 (-11 pp)
+- **Cold-start RL** outperforms supervised fine-tuning alone
 
 ## License
 
